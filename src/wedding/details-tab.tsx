@@ -95,7 +95,7 @@ export function DetailsTab() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-card rounded-2xl p-6 shadow-lg border border-border"
+        className="bg-card rounded-2xl p-6 shadow-lg border border-border mb-6"
       >
         <h3 className="text-lg font-serif font-medium text-foreground mb-4 text-center">
           What to Wear

@@ -69,6 +69,12 @@ h1 {
   color: var(--text-h);
 }
 
+@media (prefers-color-scheme: dark) {
+  h1 {
+    color: #9ca3af;
+  }
+}
+
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
