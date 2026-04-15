@@ -5,7 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/dnd-wedding-site/',
+  base: '/',
   plugins: [
     react(),
     babel({ presets: [reactCompilerPreset()] })
