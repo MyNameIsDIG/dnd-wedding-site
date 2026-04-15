@@ -16,7 +16,6 @@ import img9 from '../assets/images/gallery/9.jpg';
 import img10 from '../assets/images/gallery/10.jpg';
 import img11 from '../assets/images/gallery/11.jpg';
 import img12 from '../assets/images/gallery/12.jpg';
-import videoSrc from '../assets/videos/std.mp4';
 
 // Gallery images - arranged to avoid grouping similar outfits
 const galleryImages = [
@@ -93,7 +92,7 @@ export function GalleryTab() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8 max-w-sm mx-auto">
                 <div className="aspect-[9/16] rounded-2xl overflow-hidden bg-muted shadow-lg">
                     <video className="w-full h-full object-cover" controls playsInline>
-                        <source src={videoSrc} />
+                        <source src={`${import.meta.env.BASE_URL}assets/std-RA9zNnua.mp4`} type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 </div>
