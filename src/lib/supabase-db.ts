@@ -114,8 +114,8 @@ export async function addRSVP(rsvp: Omit<RSVP, 'id' | 'created_at' | 'updated_at
   const supabase = getSupabase()
   
   // First, get the current party to merge guests
-  const { data: partyData, error: partyError } = await supabase
-    .from('parties')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: partyData, error: partyError } = await (supabase.from('parties') as any)
     .select('*')
     .eq('party_id', rsvp.party_id)
     .single()
@@ -123,7 +123,8 @@ export async function addRSVP(rsvp: Omit<RSVP, 'id' | 'created_at' | 'updated_at
   if (!partyError && partyData) {
     // Extract guest names from RSVP responses
     const newGuestNames = rsvp.guest_responses.map(g => g.name.trim()).filter(Boolean)
-    const existingGuestNames = (partyData.guests || []).map((g: any) => g.name) // eslint-disable-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingGuestNames = (partyData.guests || []).map((g: any) => g.name)
     
     // Merge guests, avoiding duplicates
     const mergedGuestNames = [...new Set([...existingGuestNames, ...newGuestNames])]
@@ -133,7 +134,8 @@ export async function addRSVP(rsvp: Omit<RSVP, 'id' | 'created_at' | 'updated_at
     }))
     
     // Update party with new guests and adjust maxGuests if needed
-    const newMaxGuests = Math.max(partyData.max_guests, mergedGuests.length)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newMaxGuests = Math.max((partyData as any).max_guests, mergedGuests.length)
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase.from('parties') as any)
