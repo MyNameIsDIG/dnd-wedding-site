@@ -108,7 +108,7 @@ export function HomeTab() {
                 </motion.p>
 
                 {/* Couple Names */}
-                <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="text-4xl sm:text-5xl lg:text-6xl font-serif font-medium text-foreground mb-2 text-balance">
+                <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="text-6xl sm:text-7xl lg:text-8xl font-serif font-medium text-foreground mb-2 text-balance">
                     Nicole & Dave
                 </motion.h1>
 
