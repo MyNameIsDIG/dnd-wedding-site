@@ -64,14 +64,30 @@ export async function addParty(party: Party): Promise<boolean> {
 
 export async function deleteParty(partyId: string): Promise<boolean> {
   const supabase = getSupabase()
+  
+  // First, delete associated RSVPs
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase.from('parties') as any)
+  const rsvpResult = await (supabase.from('rsvps') as any)
     .delete()
     .eq('party_id', partyId)
-    .select()
+  
+  const { error: rsvpError } = rsvpResult
 
-  if (error) {
-    console.error('Error deleting party:', error)
+  if (rsvpError) {
+    console.error('Error deleting RSVP for party:', rsvpError)
+    return false
+  }
+
+  // Then delete the party itself
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const partyResult = await (supabase.from('parties') as any)
+    .delete()
+    .eq('party_id', partyId)
+  
+  const { error: partyError } = partyResult
+
+  if (partyError) {
+    console.error('Error deleting party:', partyError)
     return false
   }
 

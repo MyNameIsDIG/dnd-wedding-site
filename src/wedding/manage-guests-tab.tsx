@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Users, CheckCircle, XCircle, Clock, Edit, Trash2, Save, Plus } from "lucide-react"
+import { Users, CheckCircle, XCircle, Clock, Edit, Trash2, Save, Plus, RotateCw } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
@@ -200,9 +200,20 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <h1 className="text-2xl md:text-3xl font-serif font-medium text-foreground mb-2">
-            Guest Management Dashboard
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h1 className="text-2xl md:text-3xl font-serif font-medium text-foreground">
+              Guest Management Dashboard
+            </h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refreshData()}
+              className="rounded-full p-2"
+              title="Refresh data from Supabase"
+            >
+              <RotateCw className="w-4 h-4" />
+            </Button>
+          </div>
           <p className="text-muted-foreground">
             Manage wedding guests and track RSVPs
           </p>
