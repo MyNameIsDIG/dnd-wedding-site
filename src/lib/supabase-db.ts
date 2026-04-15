@@ -112,6 +112,39 @@ export async function findRSVPByPartyId(partyId: string): Promise<RSVP | null> {
 
 export async function addRSVP(rsvp: Omit<RSVP, 'id' | 'created_at' | 'updated_at'>): Promise<RSVP> {
   const supabase = getSupabase()
+  
+  // First, get the current party to merge guests
+  const { data: partyData, error: partyError } = await supabase
+    .from('parties')
+    .select('*')
+    .eq('party_id', rsvp.party_id)
+    .single()
+
+  if (!partyError && partyData) {
+    // Extract guest names from RSVP responses
+    const newGuestNames = rsvp.guest_responses.map(g => g.name.trim()).filter(Boolean)
+    const existingGuestNames = (partyData.guests || []).map((g: any) => g.name) // eslint-disable-line @typescript-eslint/no-explicit-any
+    
+    // Merge guests, avoiding duplicates
+    const mergedGuestNames = [...new Set([...existingGuestNames, ...newGuestNames])]
+    const mergedGuests = mergedGuestNames.map(name => ({
+      name,
+      nameParts: name.toLowerCase().split(/\s+/)
+    }))
+    
+    // Update party with new guests and adjust maxGuests if needed
+    const newMaxGuests = Math.max(partyData.max_guests, mergedGuests.length)
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from('parties') as any)
+      .update({
+        guests: mergedGuests,
+        max_guests: newMaxGuests
+      })
+      .eq('party_id', rsvp.party_id)
+  }
+
+  // Now insert the RSVP
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from('rsvps') as any)
     .insert(rsvp)
