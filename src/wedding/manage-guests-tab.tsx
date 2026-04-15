@@ -200,7 +200,7 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <h1 className="text-[30px] font-serif font-medium text-foreground mb-2">
+          <h1 className="text-2xl md:text-3xl font-serif font-medium text-foreground mb-2">
             Guest Management Dashboard
           </h1>
           <p className="text-muted-foreground">
