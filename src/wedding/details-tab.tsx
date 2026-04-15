@@ -48,7 +48,7 @@ export function DetailsTab() {
             transition={{ delay: index * 0.1 }}
             className="bg-card rounded-2xl p-6 shadow-lg border border-border"
           >
-            <div className="flex items-start justify-start mb-4">
+            <div className="flex items-start justify-start mb-4 text-left">
               <div>
                 <span className="inline-block px-3 py-1 text-xs font-medium uppercase tracking-wider bg-primary/10 text-primary rounded-full mb-3">
                   {venue.type}
