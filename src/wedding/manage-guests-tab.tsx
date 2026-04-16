@@ -8,6 +8,7 @@ import { Badge } from "../ui/badge"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog"
 import { Textarea } from "../ui/textarea"
 import { readGuests, readRSVPs, updateParty, addParty, deleteParty } from "../lib/supabase-db"
 import type { Party } from "../lib/local-db"
@@ -49,6 +50,8 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
   const [editingParty, setEditingParty] = useState<Party | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showAddDialog, setShowAddDialog] = useState(false)
+  const [deleteConfirmParty, setDeleteConfirmParty] = useState<Party | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [newParty, setNewParty] = useState<Partial<Party>>({
     partyName: '',
     maxGuests: 1,
@@ -165,11 +168,20 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
     }
   }
 
-  const handleDeleteParty = async (partyId: string) => {
+  const confirmDeleteParty = (party: Party) => {
+    setDeleteConfirmParty(party)
+    setShowDeleteConfirm(true)
+  }
+
+  const handleDeleteParty = async () => {
+    if (!deleteConfirmParty) return
+    
     try {
-      const success = await deleteParty(partyId)
+      const success = await deleteParty(deleteConfirmParty.partyId)
       if (success) {
         await refreshData()
+        setShowDeleteConfirm(false)
+        setDeleteConfirmParty(null)
       } else {
         console.error('Failed to delete party')
       }
@@ -333,7 +345,7 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteParty(party.partyId)}
+                        onClick={() => confirmDeleteParty(party)}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -459,6 +471,27 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Party</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete the party <strong>{deleteConfirmParty?.partyName}</strong>? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex gap-2 justify-end">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteParty}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )
