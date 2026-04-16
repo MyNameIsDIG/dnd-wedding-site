@@ -9,17 +9,10 @@ export interface ThemeProviderProps {
 
 export function ThemeProvider({ 
   children, 
-  defaultTheme = 'system',
+  defaultTheme = 'light',
   storageKey = 'theme'
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<string>(defaultTheme)
-
-  React.useEffect(() => {
-    const stored = localStorage.getItem(storageKey)
-    if (stored) {
-      setTheme(stored)
-    }
-  }, [storageKey])
+  const [theme] = React.useState<string>('light')
 
   return (
     <div data-theme={theme}>
