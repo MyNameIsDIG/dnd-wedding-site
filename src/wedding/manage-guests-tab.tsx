@@ -201,9 +201,9 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
           className="text-center"
         >
           <div className="flex items-center justify-center gap-3 mb-2">
-            <h1 className="text-2xl md:text-3xl font-serif font-medium text-foreground">
+            <h2 className="text-2xl md:text-3xl font-serif font-medium text-foreground">
               Guest Management Dashboard
-            </h1>
+            </h2>
             <Button
               variant="ghost"
               size="sm"
@@ -276,7 +276,13 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {guestsData.parties.map((party) => {
+              {guestsData.parties.sort((a, b) => {
+                const statusA = getPartyStatus(a)
+                const statusB = getPartyStatus(b)
+                const hasResponsedA = statusA.status !== 'pending'
+                const hasResponsedB = statusB.status !== 'pending'
+                return hasResponsedB ? 1 : hasResponsedA ? -1 : 0
+              }).map((party) => {
                 const status = getPartyStatus(party)
                 const rsvp = rsvpsData.rsvps.find(r => r.party_id === party.partyId)
 
