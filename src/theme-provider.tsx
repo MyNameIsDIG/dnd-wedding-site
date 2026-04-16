@@ -2,15 +2,10 @@ import * as React from 'react'
 
 export interface ThemeProviderProps {
   children: React.ReactNode
-  attribute?: string
-  defaultTheme?: string
-  storageKey?: string
 }
 
 export function ThemeProvider({ 
-  children, 
-  defaultTheme = 'light',
-  storageKey = 'theme'
+  children
 }: ThemeProviderProps) {
   const [theme] = React.useState<string>('light')
 

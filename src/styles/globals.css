@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
   --background: oklch(0.98 0.01 350);
   --foreground: oklch(0.25 0.02 350);
