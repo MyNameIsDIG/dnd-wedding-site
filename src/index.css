@@ -49,11 +49,11 @@ body {
 
 h1 {
   color: var(--text-h);
-  font-size: 56px;
+  font-size: 80px;
   letter-spacing: -1.68px;
   margin: 0;
   @media (max-width: 1024px) {
-    font-size: 36px;
+    font-size: 48px;
     margin: 0px 0px 8px;
   }
 }
