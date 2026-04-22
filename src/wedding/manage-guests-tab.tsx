@@ -43,6 +43,13 @@ interface ManageGuestsTabProps {
   refreshKey?: number
 }
 
+interface GuestDetail {
+  name: string
+  partyName: string
+  status: "yes" | "no" | "pending"
+  updatedAt?: string
+}
+
 export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
   const [guestsData, setGuestsData] = useState<GuestsData | null>(null)
   const [rsvpsData, setRsvpsData] = useState<RSVPsData | null>(null)
@@ -57,6 +64,9 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
     maxGuests: 1,
     guests: []
   })
+  const [showGuestListModal, setShowGuestListModal] = useState(false)
+  const [guestListFilter, setGuestListFilter] = useState<"all" | "accepted" | "declined" | "pending">("all")
+  const [filteredGuestList, setFilteredGuestList] = useState<GuestDetail[]>([])
 
   const refreshData = async () => {
     setLoading(true)
@@ -203,6 +213,82 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
     return { status: 'pending', count: 0, total: party.guests.length }
   }
 
+  const getGuestListForFilter = (filter: "all" | "accepted" | "declined" | "pending"): GuestDetail[] => {
+    const guests: GuestDetail[] = []
+
+    guestsData!.parties.forEach((party) => {
+      const rsvp = rsvpsData!.rsvps.find(r => r.party_id === party.partyId)
+
+      party.guests.forEach((guest) => {
+        const response = rsvp?.guest_responses.find(r => r.name === guest.name)
+        const status = response?.attending || 'pending'
+
+        let matches = false
+        if (filter === 'all') {
+          matches = true
+        } else if (filter === 'accepted' && status === 'yes') {
+          matches = true
+        } else if (filter === 'declined' && status === 'no') {
+          matches = true
+        } else if (filter === 'pending' && status === 'pending') {
+          matches = true
+        }
+
+        if (matches) {
+          guests.push({
+            name: guest.name,
+            partyName: party.partyName,
+            status: status as "yes" | "no" | "pending",
+            updatedAt: rsvp?.updated_at
+          })
+        }
+      })
+    })
+
+    // Sort by acceptance time (most recent first) for accepted guests, otherwise alphabetically
+    if (filter === 'accepted') {
+      return guests.sort((a, b) => {
+        // Sort by updatedAt in descending order (most recent first)
+        if (a.updatedAt && b.updatedAt) {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        }
+        return 0
+      })
+    }
+
+    // Sort by first name for other filters
+    return guests.sort((a, b) => {
+      const firstNameA = a.name.split(' ')[0].toLowerCase()
+      const firstNameB = b.name.split(' ')[0].toLowerCase()
+      return firstNameA.localeCompare(firstNameB)
+    })
+  }
+
+  const formatPHTime = (dateString?: string) => {
+    if (!dateString) return ''
+    
+    const date = new Date(dateString)
+    const formatter = new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    })
+    
+    return formatter.format(date)
+  }
+
+  const handleStatCardClick = (filter: "all" | "accepted" | "declined" | "pending") => {
+    const guests = getGuestListForFilter(filter)
+    setFilteredGuestList(guests)
+    setGuestListFilter(filter)
+    setShowGuestListModal(true)
+  }
+
   return (
     <div className="min-h-[calc(100vh-80px)] p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -238,28 +324,28 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
           transition={{ delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStatCardClick('all')}>
             <CardContent className="p-4 text-center">
               <Users className="w-8 h-8 mx-auto mb-2 text-blue-500" />
               <div className="text-2xl font-bold">{totalGuests}</div>
               <div className="text-sm text-muted-foreground">Estimated Total Guests</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStatCardClick('accepted')}>
             <CardContent className="p-4 text-center">
               <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500" />
               <div className="text-2xl font-bold">{totalAccepted}</div>
               <div className="text-sm text-muted-foreground">Accepted</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStatCardClick('declined')}>
             <CardContent className="p-4 text-center">
               <XCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
               <div className="text-2xl font-bold">{totalDeclined}</div>
               <div className="text-sm text-muted-foreground">Declined</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStatCardClick('pending')}>
             <CardContent className="p-4 text-center">
               <Clock className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
               <div className="text-2xl font-bold">{totalPending}</div>
@@ -289,11 +375,22 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               {guestsData.parties.sort((a, b) => {
-                const statusA = getPartyStatus(a)
-                const statusB = getPartyStatus(b)
-                const hasResponsedA = statusA.status !== 'pending'
-                const hasResponsedB = statusB.status !== 'pending'
-                return hasResponsedB ? 1 : hasResponsedA ? -1 : 0
+                const rsvpA = rsvpsData.rsvps.find(r => r.party_id === a.partyId)
+                const rsvpB = rsvpsData.rsvps.find(r => r.party_id === b.partyId)
+                
+                const hasResponsedA = rsvpA !== undefined
+                const hasResponsedB = rsvpB !== undefined
+                
+                // Put responded parties first
+                if (hasResponsedA && !hasResponsedB) return -1
+                if (!hasResponsedA && hasResponsedB) return 1
+                
+                // For responded parties, sort by updated_at (oldest first = first accepters at top)
+                if (hasResponsedA && hasResponsedB && rsvpA && rsvpB) {
+                  return new Date(rsvpA.updated_at).getTime() - new Date(rsvpB.updated_at).getTime()
+                }
+                
+                return 0
               }).map((party) => {
                 const status = getPartyStatus(party)
                 const rsvp = rsvpsData.rsvps.find(r => r.party_id === party.partyId)
@@ -492,6 +589,41 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
             </div>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Guest List Modal */}
+        <Dialog open={showGuestListModal} onOpenChange={setShowGuestListModal}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {guestListFilter === 'all' && 'All Guests'}
+                {guestListFilter === 'accepted' && 'Accepted Guests'}
+                {guestListFilter === 'declined' && 'Declined Guests'}
+                {guestListFilter === 'pending' && 'Pending Guests'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              {filteredGuestList.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No guests found</p>
+              ) : (
+                <div className="space-y-2">
+                  {filteredGuestList.map((guest, idx) => (
+                    <div key={idx} className="bg-white rounded-lg border border-border px-4 py-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{guest.name}</p>
+                        <p className="text-xs text-muted-foreground">{guest.partyName}</p>
+                      </div>
+                      {guestListFilter === 'accepted' && guest.updatedAt && (
+                        <div className="text-right">
+                          <p className="text-xs font-medium text-green-600">{formatPHTime(guest.updatedAt)}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
