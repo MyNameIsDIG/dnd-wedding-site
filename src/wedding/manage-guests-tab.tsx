@@ -245,8 +245,8 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
       })
     })
 
-    // Sort by acceptance time (most recent first) for accepted guests, otherwise alphabetically
-    if (filter === 'accepted') {
+    // Sort by response time (most recent first) for accepted/declined guests, otherwise alphabetically
+    if (filter === 'accepted' || filter === 'declined') {
       return guests.sort((a, b) => {
         // Sort by updatedAt in descending order (most recent first)
         if (a.updatedAt && b.updatedAt) {
@@ -328,7 +328,7 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
             <CardContent className="p-4 text-center">
               <Users className="w-8 h-8 mx-auto mb-2 text-blue-500" />
               <div className="text-2xl font-bold">{totalGuests}</div>
-              <div className="text-sm text-muted-foreground">Estimated Total Guests</div>
+              <div className="text-sm text-muted-foreground">Estimated Guests</div>
             </CardContent>
           </Card>
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStatCardClick('accepted')}>
@@ -464,25 +464,28 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
             {editingParty && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="partyName">Party Name</Label>
+                  <Label htmlFor="partyName" className="mb-4 block">Party Name</Label>
                   <Input
                     id="partyName"
+                    className="bg-white"
                     value={editingParty.partyName}
                     onChange={(e) => setEditingParty({ ...editingParty, partyName: e.target.value })}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maxGuests">Max Guests</Label>
+                  <Label htmlFor="maxGuests" className="mb-4 block">Max Guests</Label>
                   <Input
                     id="maxGuests"
+                    className="bg-white"
                     type="number"
                     value={editingParty.maxGuests}
                     onChange={(e) => setEditingParty({ ...editingParty, maxGuests: parseInt(e.target.value) })}
                   />
                 </div>
                 <div>
-                  <Label>Guests</Label>
+                  <Label className="mb-4 block">Guests</Label>
                   <Textarea
+                    className="bg-white"
                     value={editingParty.guests.map(g => g.name).join('\n')}
                     onChange={(e) => {
                       const names = e.target.value.split('\n')
@@ -520,18 +523,20 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="newPartyName">Party Name</Label>
+                <Label htmlFor="newPartyName" className="mb-4 block">Party Name</Label>
                 <Input
                   id="newPartyName"
+                  className="bg-white"
                   value={newParty.partyName || ''}
                   onChange={(e) => setNewParty({ ...newParty, partyName: e.target.value })}
                   placeholder="e.g., Smith Family"
                 />
               </div>
               <div>
-                <Label htmlFor="newMaxGuests">Max Guests</Label>
+                <Label htmlFor="newMaxGuests" className="mb-4 block">Max Guests</Label>
                 <Input
                   id="newMaxGuests"
+                  className="bg-white"
                   type="number"
                   value={newParty.maxGuests || 1}
                   onChange={(e) => setNewParty({ ...newParty, maxGuests: parseInt(e.target.value) })}
@@ -539,8 +544,9 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                 />
               </div>
               <div>
-                <Label>Guests</Label>
+                <Label className="mb-4 block">Guests</Label>
                 <Textarea
+                  className="bg-white"
                   value={newParty.guests?.map(g => g.name).join('\n') || ''}
                   onChange={(e) => {
                     const names = e.target.value.split('\n')
@@ -592,7 +598,7 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
 
         {/* Guest List Modal */}
         <Dialog open={showGuestListModal} onOpenChange={setShowGuestListModal}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>
                 {guestListFilter === 'all' && 'All Guests'}
@@ -601,7 +607,7 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                 {guestListFilter === 'pending' && 'Pending Guests'}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-2">
+            <div className="overflow-y-auto space-y-2">
               {filteredGuestList.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No guests found</p>
               ) : (
@@ -612,9 +618,9 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                         <p className="text-sm font-medium">{guest.name}</p>
                         <p className="text-xs text-muted-foreground">{guest.partyName}</p>
                       </div>
-                      {guestListFilter === 'accepted' && guest.updatedAt && (
+                      {(guestListFilter === 'accepted' || guestListFilter === 'declined') && guest.updatedAt && (
                         <div className="text-right">
-                          <p className="text-xs font-medium text-green-600">{formatPHTime(guest.updatedAt)}</p>
+                          <p className={`text-xs font-medium ${guestListFilter === 'accepted' ? 'text-green-600' : 'text-red-600'}`}>{formatPHTime(guest.updatedAt)}</p>
                         </div>
                       )}
                     </div>
