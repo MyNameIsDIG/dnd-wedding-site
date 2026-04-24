@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Users, CheckCircle, XCircle, Clock, Edit, Trash2, Save, Plus, RotateCw } from "lucide-react"
+import { Users, CheckCircle, XCircle, Clock, Edit, Trash2, Save, Plus, RotateCw, MessageCircle } from "lucide-react"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
@@ -67,6 +67,22 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
   const [showGuestListModal, setShowGuestListModal] = useState(false)
   const [guestListFilter, setGuestListFilter] = useState<"all" | "accepted" | "declined" | "pending">("all")
   const [filteredGuestList, setFilteredGuestList] = useState<GuestDetail[]>([])
+  const [showMessagesDialog, setShowMessagesDialog] = useState(false)
+  const [guestMessages, setGuestMessages] = useState<Array<{ partyName: string; message: string; updatedAt: string }>>([])
+
+  const handleOpenMessages = () => {
+    const messages = rsvpsData!.rsvps
+      .filter(rsvp => rsvp.additional_notes)
+      .map(rsvp => ({
+        partyName: rsvp.party_name,
+        message: rsvp.additional_notes || '',
+        updatedAt: rsvp.updated_at
+      }))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    
+    setGuestMessages(messages)
+    setShowMessagesDialog(true)
+  }
 
   const refreshData = async () => {
     setLoading(true)
@@ -395,27 +411,30 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                 const status = getPartyStatus(party)
                 const rsvp = rsvpsData.rsvps.find(r => r.party_id === party.partyId)
 
+                const unnamedGuestCount = Math.max(0, (rsvp?.attending_count || 0) - party.guests.length)
+                const unnamedSlots = Math.max(0, party.maxGuests - party.guests.length)
+
                 return (
-                  <div key={party.partyId} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                  <div key={party.partyId} className="border rounded-lg overflow-hidden flex flex-col md:flex-row">
+                    {/* Card Content */}
+                    <div className="p-4 flex-1">
+                      <div className="flex items-center gap-3 mb-3">
                         <h3 className="font-medium">{party.partyName}</h3>
-                        <Badge variant={
-                          status.status === 'accepted' ? 'default' :
-                          status.status === 'declined' ? 'destructive' :
-                          status.status === 'partial' ? 'secondary' : 'outline'
+                        <Badge className={
+                          status.status === 'accepted' ? 'bg-green-500 hover:bg-green-600 text-white' :
+                          status.status === 'declined' ? 'bg-red-500 hover:bg-red-600 text-white' :
+                          status.status === 'partial' ? 'bg-gray-500 hover:bg-gray-600 text-white' : 'bg-yellow-500 hover:bg-yellow-600 text-white'
                         }>
                           {status.status === 'accepted' ? 'Accepted' :
                            status.status === 'declined' ? 'Declined' :
                            status.status === 'partial' ? 'Partial' : 'Pending'}
                         </Badge>
                       </div>
-                      <div className="text-sm text-muted-foreground space-y-1 text-left">
-                        <p>{party.guests.length} named guests (max {party.maxGuests})</p>
+                      <div className="text-sm text-muted-foreground space-y-2 text-left">
                         {rsvp && (
                           <p>Responded by: {rsvp.responding_guest}</p>
                         )}
-                        <div className="flex gap-4 mt-2 flex-wrap">
+                        <div className="flex gap-2 mt-2 flex-wrap">
                           {party.guests.map((guest, idx) => {
                             const response = rsvp?.guest_responses.find(r => r.name === guest.name)
                             return (
@@ -424,18 +443,30 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                                 response?.attending === 'no' ? 'bg-red-100 text-red-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
-                                {guest.name}: {response?.attending || 'pending'}
+                                {guest.name}
                               </span>
                             )
                           })}
+                          {Array.from({ length: unnamedSlots }).map((_, idx) => (
+                            <span key={`unnamed-${idx}`} className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-800">
+                              Unnamed Guest
+                            </span>
+                          ))}
+                          {unnamedGuestCount > 0 && (
+                            <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">
+                              +{unnamedGuestCount} unnamed
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    {/* Action Buttons - Below on mobile, left side on desktop */}
+                    <div className="p-3 md:p-4 bg-muted/20 border-t md:border-t-0 md:border-l flex md:flex-col gap-2 justify-end md:justify-center items-center md:items-center flex-wrap md:flex-nowrap">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditParty(party)}
+                        className="w-full md:w-auto"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -443,7 +474,7 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                         variant="outline"
                         size="sm"
                         onClick={() => confirmDeleteParty(party)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 w-full md:w-auto"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -623,6 +654,40 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                           <p className={`text-xs font-medium ${guestListFilter === 'accepted' ? 'text-green-600' : 'text-red-600'}`}>{formatPHTime(guest.updatedAt)}</p>
                         </div>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Floating Message Button */}
+        <button
+          onClick={handleOpenMessages}
+          className="fixed bottom-20 right-6 bg-primary hover:bg-primary/90 text-white rounded-full p-3 shadow-lg transition-all duration-200 z-30"
+          title="View guest messages"
+          aria-label="View guest messages"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+
+        {/* Guest Messages Dialog */}
+        <Dialog open={showMessagesDialog} onOpenChange={setShowMessagesDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Guest Messages</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-y-auto space-y-4">
+              {guestMessages.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No messages from guests</p>
+              ) : (
+                <div className="space-y-4">
+                  {guestMessages.map((msg, idx) => (
+                    <div key={idx} className="bg-white rounded-lg border border-border p-4">
+                      <p className="text-sm font-semibold text-primary mb-2">From: {msg.partyName}</p>
+                      <p className="text-sm text-foreground mb-2">{msg.message}</p>
+                      <p className="text-xs text-muted-foreground">{formatPHTime(msg.updatedAt)}</p>
                     </div>
                   ))}
                 </div>

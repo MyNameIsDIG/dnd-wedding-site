@@ -118,7 +118,7 @@ export function DetailsTab() {
             </div>
             <div>
               <p className="font-medium text-foreground text-sm">Color Theme</p>
-              <p className="text-muted-foreground text-sm">Spring Pastels</p>
+              <p className="text-muted-foreground text-sm">Spring Pastel</p>
             </div>
           </div>
         </div>
