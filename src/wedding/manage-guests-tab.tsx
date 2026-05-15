@@ -10,7 +10,8 @@ import { Label } from "../ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog"
 import { Textarea } from "../ui/textarea"
-import { readGuests, readRSVPs, updateParty, addParty, deleteParty } from "../lib/supabase-db"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { readGuests, readRSVPs, updateParty, addParty, deleteParty, updateRSVP, getRSVPStatus, setRSVPStatus } from "../lib/supabase-db"
 import type { Party } from "../lib/local-db"
 
 interface GuestResponse {
@@ -69,6 +70,9 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
   const [filteredGuestList, setFilteredGuestList] = useState<GuestDetail[]>([])
   const [showMessagesDialog, setShowMessagesDialog] = useState(false)
   const [guestMessages, setGuestMessages] = useState<Array<{ partyName: string; message: string; updatedAt: string }>>([])
+  const [rsvpIsOpen, setRsvpIsOpen] = useState(true)
+  const [showRsvpConfirm, setShowRsvpConfirm] = useState(false)
+  const [pendingRsvpAction, setPendingRsvpAction] = useState<boolean | null>(null)
 
   const handleOpenMessages = () => {
     const messages = rsvpsData!.rsvps
@@ -84,13 +88,22 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
     setShowMessagesDialog(true)
   }
 
+  const handleRsvpStatusChange = async (newStatus: boolean) => {
+    await setRSVPStatus(newStatus)
+    setRsvpIsOpen(newStatus)
+    setShowRsvpConfirm(false)
+    setPendingRsvpAction(null)
+  }
+
   const refreshData = async () => {
     setLoading(true)
     try {
       const guests = await readGuests()
       const rsvps = await readRSVPs()
+      const isOpen = await getRSVPStatus()
       setGuestsData(guests)
       setRsvpsData({ rsvps })
+      setRsvpIsOpen(isOpen)
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
@@ -131,8 +144,56 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
   const totalPending = totalGuests - totalAccepted - totalDeclined
 
   const handleEditParty = (party: Party) => {
-    setEditingParty({ ...party })
+    // Initialize guests with their current RSVP status
+    const updatedParty = { ...party }
+    const partyRsvp = rsvpsData?.rsvps.find(r => r.party_id === party.partyId)
+    
+    if (partyRsvp) {
+      updatedParty.guests = party.guests.map(guest => ({
+        ...guest,
+        rsvpStatus: (partyRsvp.guest_responses.find(g => g.name === guest.name)?.attending as any) || 'pending'
+      })) as any
+    }
+    
+    setEditingParty(updatedParty)
     setShowEditDialog(true)
+  }
+
+  const handleGuestRsvpChange = (guestName: string, newStatus: "yes" | "no" | "pending") => {
+    if (!editingParty) return
+    
+    // Update or create the RSVP data
+    const updatedGuests = editingParty.guests.map(guest => {
+      if (guest.name === guestName) {
+        return {
+          ...guest,
+          rsvpStatus: newStatus
+        }
+      }
+      return guest
+    })
+    
+    setEditingParty({
+      ...editingParty,
+      guests: updatedGuests as any
+    })
+  }
+
+  const getGuestRsvpStatus = (guestName: string): "yes" | "no" | "pending" => {
+    if (!editingParty) return "pending"
+    
+    const guest = editingParty.guests.find(g => g.name === guestName)
+    return (guest as any)?.rsvpStatus || "pending"
+  }
+
+  const handleDeleteGuest = (guestName: string) => {
+    if (!editingParty) return
+    
+    const updatedGuests = editingParty.guests.filter(guest => guest.name !== guestName)
+    setEditingParty({
+      ...editingParty,
+      guests: updatedGuests
+    })
   }
 
   const handleSaveParty = async () => {
@@ -152,6 +213,20 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
       const success = await updateParty(editingParty.partyId, sanitizedParty)
 
       if (success) {
+        // Update RSVP guest responses with new statuses
+        const guestResponses = editingParty.guests
+          .filter(guest => guest.name.trim())
+          .map(guest => ({
+            name: guest.name.trim(),
+            attending: ((guest as any).rsvpStatus || 'pending') as "yes" | "no" | "pending"
+          }))
+        
+        // Check if RSVP exists for this party
+        const existingRsvp = rsvpsData?.rsvps.find(r => r.party_id === editingParty.partyId)
+        if (existingRsvp) {
+          await updateRSVP(editingParty.partyId, guestResponses)
+        }
+
         await refreshData()
         setShowEditDialog(false)
         setEditingParty(null)
@@ -331,6 +406,31 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
           <p className="text-muted-foreground">
             Manage wedding guests and track RSVPs
           </p>
+        </motion.div>
+
+        {/* RSVP Status Toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="flex items-center justify-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">RSVP Status:</span>
+            <Badge className={rsvpIsOpen ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+              {rsvpIsOpen ? "Open" : "Closed"}
+            </Badge>
+          </div>
+          <Button
+            variant={rsvpIsOpen ? "outline" : "default"}
+            size="sm"
+            onClick={() => {
+              setPendingRsvpAction(!rsvpIsOpen)
+              setShowRsvpConfirm(true)
+            }}
+          >
+            {rsvpIsOpen ? "Close RSVP" : "Open RSVP"}
+          </Button>
         </motion.div>
 
         {/* Statistics Cards */}
@@ -515,22 +615,112 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
                 </div>
                 <div>
                   <Label className="mb-4 block">Guests</Label>
-                  <Textarea
-                    className="bg-white"
-                    value={editingParty.guests.map(g => g.name).join('\n')}
-                    onChange={(e) => {
-                      const names = e.target.value.split('\n')
-                      setEditingParty({
-                        ...editingParty,
-                        guests: names.map(name => ({
-                          name,
-                          nameParts: name.trim() ? name.toLowerCase().split(/\s+/) : [],
-                        })),
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {editingParty.guests.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">No guests added</p>
+                    ) : (
+                      editingParty.guests.map((guest, idx) => {
+                        const rsvpStatus = getGuestRsvpStatus(guest.name)
+                        return (
+                          <div
+                            key={idx}
+                            className="border rounded-lg p-4 bg-white hover:shadow-sm transition-shadow"
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="font-medium text-sm">{guest.name || `Guest ${idx + 1}`}</span>
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={rsvpStatus}
+                                  onValueChange={(value) =>
+                                    handleGuestRsvpChange(
+                                      guest.name,
+                                      value as "yes" | "no" | "pending"
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="w-32 h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="yes">Attending</SelectItem>
+                                    <SelectItem value="no">Not Attending</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                {rsvpStatus === "yes" && (
+                                  <Badge className="bg-green-100 text-green-800">✓</Badge>
+                                )}
+                                {rsvpStatus === "no" && (
+                                  <Badge className="bg-red-100 text-red-800">✗</Badge>
+                                )}
+                                {rsvpStatus === "pending" && (
+                                  <Badge className="bg-yellow-100 text-yellow-800">?</Badge>
+                                )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteGuest(guest.name)}
+                                  className="text-red-600 hover:text-red-700 h-8 w-8 p-0"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )
                       })
-                    }}
-                    placeholder="One guest name per line"
-                    rows={5}
-                  />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <Label className="mb-4 block">Add Guest</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="newGuestName"
+                      className="bg-white flex-1"
+                      placeholder="Enter guest name"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          const input = e.target as HTMLInputElement
+                          if (input.value.trim()) {
+                            setEditingParty({
+                              ...editingParty,
+                              guests: [
+                                ...editingParty.guests,
+                                {
+                                  name: input.value.trim(),
+                                  nameParts: input.value.trim().toLowerCase().split(/\s+/),
+                                },
+                              ],
+                            })
+                            input.value = ""
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const input = document.getElementById("newGuestName") as HTMLInputElement
+                        if (input && input.value.trim()) {
+                          setEditingParty({
+                            ...editingParty,
+                            guests: [
+                              ...editingParty.guests,
+                              {
+                                name: input.value.trim(),
+                                nameParts: input.value.trim().toLowerCase().split(/\s+/),
+                              },
+                            ],
+                          })
+                          input.value = ""
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <Button variant="outline" onClick={() => setShowEditDialog(false)}>
@@ -671,6 +861,35 @@ export function ManageGuestsTab({ refreshKey }: ManageGuestsTabProps) {
         >
           <MessageCircle className="w-6 h-6" />
         </button>
+
+        {/* RSVP Status Confirmation Dialog */}
+        <AlertDialog open={showRsvpConfirm} onOpenChange={setShowRsvpConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pendingRsvpAction ? "Open RSVP?" : "Close RSVP?"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {pendingRsvpAction
+                  ? "Are you sure you want to open RSVP? Guests will be able to submit responses again."
+                  : "Are you sure you want to close RSVP? Guests will no longer be able to submit responses."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex gap-3 justify-end">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingRsvpAction !== null) {
+                    handleRsvpStatusChange(pendingRsvpAction)
+                  }
+                }}
+                className={pendingRsvpAction === false ? "bg-red-600 hover:bg-red-700" : ""}
+              >
+                {pendingRsvpAction ? "Open RSVP" : "Close RSVP"}
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Guest Messages Dialog */}
         <Dialog open={showMessagesDialog} onOpenChange={setShowMessagesDialog}>

@@ -176,3 +176,57 @@ export async function addRSVP(rsvp: Omit<RSVP, 'id' | 'created_at' | 'updated_at
 
   return data
 }
+
+export async function updateRSVP(partyId: string, guestResponses: Array<{name: string; attending: "yes" | "no" | "pending"}>): Promise<boolean> {
+  const supabase = getSupabase()
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from('rsvps') as any)
+    .update({
+      guest_responses: guestResponses,
+      updated_at: new Date().toISOString()
+    })
+    .eq('party_id', partyId)
+
+  if (error) {
+    console.error('Error updating RSVP:', error)
+    return false
+  }
+
+  return true
+}
+
+export async function getRSVPStatus(): Promise<boolean> {
+  // Try to get from localStorage first
+  const stored = localStorage.getItem('rsvp_is_open')
+  if (stored !== null) {
+    return JSON.parse(stored)
+  }
+  
+  // Default to open
+  return true
+}
+
+export async function setRSVPStatus(isOpen: boolean): Promise<boolean> {
+  try {
+    // Save to localStorage
+    localStorage.setItem('rsvp_is_open', JSON.stringify(isOpen))
+    
+    // Try to save to Supabase (optional)
+    const supabase = getSupabase()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from('event_settings') as any)
+      .upsert({
+        id: 1,
+        rsvp_is_open: isOpen,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', 1)
+    
+    return true
+  } catch (error) {
+    console.error('Error setting RSVP status:', error)
+    // Still consider it a success since localStorage was updated
+    return true
+  }
+}

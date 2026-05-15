@@ -54,56 +54,56 @@ import img47 from '../assets/images/gallery/47.webp';
 import img48 from '../assets/images/gallery/48.webp';
 import videoFile from '../assets/videos/std.webm';
 
-// Gallery images - arranged to avoid grouping similar outfits
+// Gallery images - shuffled for visual variety
 const galleryImages = [
-    { id: 1, src: img1, alt: 'Nicole and Dave - 1' },
-    { id: 2, src: img2, alt: 'Nicole and Dave - 2' },
-    { id: 3, src: img3, alt: 'Nicole and Dave - 3' },
-    { id: 4, src: img4, alt: 'Nicole and Dave - 4' },
-    { id: 5, src: img5, alt: 'Nicole and Dave - 5' },
-    { id: 6, src: img6, alt: 'Nicole and Dave - 6' },
-    { id: 7, src: img7, alt: 'Nicole and Dave - 7' },
-    { id: 8, src: img8, alt: 'Nicole and Dave - 8' },
-    { id: 9, src: img9, alt: 'Nicole and Dave - 9' },
-    { id: 10, src: img10, alt: 'Nicole and Dave - 10' },
-    { id: 11, src: img11, alt: 'Nicole and Dave - 11' },
-    { id: 12, src: img12, alt: 'Nicole and Dave - 12' },
-    { id: 13, src: img13, alt: 'Nicole and Dave - 13' },
-    { id: 14, src: img14, alt: 'Nicole and Dave - 14' },
-    { id: 15, src: img15, alt: 'Nicole and Dave - 15' },
-    { id: 16, src: img16, alt: 'Nicole and Dave - 16' },
-    { id: 17, src: img17, alt: 'Nicole and Dave - 17' },
-    { id: 18, src: img18, alt: 'Nicole and Dave - 18' },
-    { id: 19, src: img19, alt: 'Nicole and Dave - 19' },
-    { id: 20, src: img20, alt: 'Nicole and Dave - 20' },
-    { id: 21, src: img21, alt: 'Nicole and Dave - 21' },
-    { id: 22, src: img22, alt: 'Nicole and Dave - 22' },
-    { id: 23, src: img23, alt: 'Nicole and Dave - 23' },
     { id: 24, src: img24, alt: 'Nicole and Dave - 24' },
-    { id: 25, src: img25, alt: 'Nicole and Dave - 25' },
-    { id: 26, src: img26, alt: 'Nicole and Dave - 26' },
-    { id: 27, src: img27, alt: 'Nicole and Dave - 27' },
-    { id: 28, src: img28, alt: 'Nicole and Dave - 28' },
-    { id: 29, src: img29, alt: 'Nicole and Dave - 29' },
-    { id: 30, src: img30, alt: 'Nicole and Dave - 30' },
-    { id: 31, src: img31, alt: 'Nicole and Dave - 31' },
-    { id: 32, src: img32, alt: 'Nicole and Dave - 32' },
-    { id: 33, src: img33, alt: 'Nicole and Dave - 33' },
-    { id: 34, src: img34, alt: 'Nicole and Dave - 34' },
-    { id: 35, src: img35, alt: 'Nicole and Dave - 35' },
-    { id: 36, src: img36, alt: 'Nicole and Dave - 36' },
-    { id: 37, src: img37, alt: 'Nicole and Dave - 37' },
-    { id: 38, src: img38, alt: 'Nicole and Dave - 38' },
-    { id: 39, src: img39, alt: 'Nicole and Dave - 39' },
-    { id: 40, src: img40, alt: 'Nicole and Dave - 40' },
-    { id: 41, src: img41, alt: 'Nicole and Dave - 41' },
+    { id: 7, src: img7, alt: 'Nicole and Dave - 7' },
     { id: 42, src: img42, alt: 'Nicole and Dave - 42' },
-    { id: 43, src: img43, alt: 'Nicole and Dave - 43' },
-    { id: 44, src: img44, alt: 'Nicole and Dave - 44' },
-    { id: 45, src: img45, alt: 'Nicole and Dave - 45' },
-    { id: 46, src: img46, alt: 'Nicole and Dave - 46' },
-    { id: 47, src: img47, alt: 'Nicole and Dave - 47' },
+    { id: 15, src: img15, alt: 'Nicole and Dave - 15' },
+    { id: 31, src: img31, alt: 'Nicole and Dave - 31' },
+    { id: 3, src: img3, alt: 'Nicole and Dave - 3' },
     { id: 48, src: img48, alt: 'Nicole and Dave - 48' },
+    { id: 11, src: img11, alt: 'Nicole and Dave - 11' },
+    { id: 39, src: img39, alt: 'Nicole and Dave - 39' },
+    { id: 5, src: img5, alt: 'Nicole and Dave - 5' },
+    { id: 19, src: img19, alt: 'Nicole and Dave - 19' },
+    { id: 33, src: img33, alt: 'Nicole and Dave - 33' },
+    { id: 8, src: img8, alt: 'Nicole and Dave - 8' },
+    { id: 27, src: img27, alt: 'Nicole and Dave - 27' },
+    { id: 44, src: img44, alt: 'Nicole and Dave - 44' },
+    { id: 12, src: img12, alt: 'Nicole and Dave - 12' },
+    { id: 36, src: img36, alt: 'Nicole and Dave - 36' },
+    { id: 1, src: img1, alt: 'Nicole and Dave - 1' },
+    { id: 47, src: img47, alt: 'Nicole and Dave - 47' },
+    { id: 20, src: img20, alt: 'Nicole and Dave - 20' },
+    { id: 4, src: img4, alt: 'Nicole and Dave - 4' },
+    { id: 28, src: img28, alt: 'Nicole and Dave - 28' },
+    { id: 16, src: img16, alt: 'Nicole and Dave - 16' },
+    { id: 40, src: img40, alt: 'Nicole and Dave - 40' },
+    { id: 9, src: img9, alt: 'Nicole and Dave - 9' },
+    { id: 35, src: img35, alt: 'Nicole and Dave - 35' },
+    { id: 21, src: img21, alt: 'Nicole and Dave - 21' },
+    { id: 6, src: img6, alt: 'Nicole and Dave - 6' },
+    { id: 43, src: img43, alt: 'Nicole and Dave - 43' },
+    { id: 14, src: img14, alt: 'Nicole and Dave - 14' },
+    { id: 37, src: img37, alt: 'Nicole and Dave - 37' },
+    { id: 2, src: img2, alt: 'Nicole and Dave - 2' },
+    { id: 29, src: img29, alt: 'Nicole and Dave - 29' },
+    { id: 45, src: img45, alt: 'Nicole and Dave - 45' },
+    { id: 10, src: img10, alt: 'Nicole and Dave - 10' },
+    { id: 22, src: img22, alt: 'Nicole and Dave - 22' },
+    { id: 38, src: img38, alt: 'Nicole and Dave - 38' },
+    { id: 13, src: img13, alt: 'Nicole and Dave - 13' },
+    { id: 32, src: img32, alt: 'Nicole and Dave - 32' },
+    { id: 17, src: img17, alt: 'Nicole and Dave - 17' },
+    { id: 46, src: img46, alt: 'Nicole and Dave - 46' },
+    { id: 26, src: img26, alt: 'Nicole and Dave - 26' },
+    { id: 18, src: img18, alt: 'Nicole and Dave - 18' },
+    { id: 30, src: img30, alt: 'Nicole and Dave - 30' },
+    { id: 25, src: img25, alt: 'Nicole and Dave - 25' },
+    { id: 34, src: img34, alt: 'Nicole and Dave - 34' },
+    { id: 41, src: img41, alt: 'Nicole and Dave - 41' },
+    { id: 23, src: img23, alt: 'Nicole and Dave - 23' },
 ];
 
 export function GalleryTab() {
@@ -173,7 +173,7 @@ export function GalleryTab() {
             </motion.div>
 
             {/* Image Grid */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-md mx-auto">
                 {galleryImages.map((image, index) => (
                     <motion.button key={image.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + index * 0.05 }} onClick={() => openLightbox(index)} className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted shadow-md hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                         <img src={image.src} alt={image.alt} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
@@ -225,6 +225,40 @@ export function GalleryTab() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Facebook Posts */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-16 flex flex-col items-center gap-8 -mx-4 px-4">
+                <div className="flex flex-col gap-2 justify-center w-full pb-4">
+                    <div className="flex justify-center flex-shrink-0 w-full lg:w-auto">
+                        <div style={{ maxWidth: '500px', width: '100%' }}>
+                            <iframe
+                                src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fjjprod.studio%2Fposts%2Fpfbid031c4ByK8WQaNN5A42TrbbXc54uS4nfqRGRjbH1Z7rTJBsj3pFZMGZeubRbfr6DVDLl&show_text=true&width=500"
+                                width="500"
+                                height="750"
+                                style={{ border: 'none', overflow: 'visible', display: 'block', maxWidth: '100%' }}
+                                scrolling="no"
+                                frameBorder="0"
+                                allowFullScreen={true}
+                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-center flex-shrink-0 w-full lg:w-auto">
+                        <div style={{ maxWidth: '500px', width: '100%' }}>
+                            <iframe
+                                src="https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Fjjprod.studio%2Fposts%2Fpfbid0rNGkqUwT6jqUZb49Zfvczy346FWgCrfZX6E1aCj7zhdnQFAcot63aM1McYx5fu6Cl&show_text=true&width=500"
+                                width="500"
+                                height="750"
+                                style={{ border: 'none', overflow: 'visible', display: 'block', maxWidth: '100%' }}
+                                scrolling="no"
+                                frameBorder="0"
+                                allowFullScreen={true}
+                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 }

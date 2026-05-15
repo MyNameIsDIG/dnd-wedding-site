@@ -1,5 +1,5 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { Check, AlertCircle, Heart, Users, Lightbulb } from "lucide-react"
 import { findPartyByName } from "../lib/guest-matching"
 import type { Party } from "../lib/local-db"
-import { findRSVPByPartyId, addRSVP } from "../lib/supabase-db"
+import { findRSVPByPartyId, addRSVP, getRSVPStatus } from "../lib/supabase-db"
 
 interface GuestRSVP {
   name: string
@@ -29,11 +29,25 @@ export function RSVPTab() {
   const [guestRSVPs, setGuestRSVPs] = useState<GuestRSVP[]>([])
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [rsvpIsOpen, setRsvpIsOpen] = useState(true)
+
+  useEffect(() => {
+    const loadRsvpStatus = async () => {
+      const isOpen = await getRSVPStatus()
+      setRsvpIsOpen(isOpen)
+    }
+    loadRsvpStatus()
+  }, [])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setHint("")
+
+    if (!rsvpIsOpen) {
+      setError("RSVP is currently closed. We have stopped accepting new responses.")
+      return
+    }
 
     const matchResult = await findPartyByName(searchName)
 
@@ -153,9 +167,23 @@ export function RSVPTab() {
         </p>
       </motion.div>
 
+      {!rsvpIsOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 text-center"
+        >
+          <AlertCircle className="w-8 h-8 text-red-600 mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-red-900 mb-2">RSVP Closed</h3>
+          <p className="text-red-800 text-sm leading-relaxed">
+            If you haven't responded yet, unfortunately, we have considered your response as a <strong>NO</strong> and given your slot to other guests. Thank you!
+          </p>
+        </motion.div>
+      )}
+
       <AnimatePresence mode="wait">
         {/* Step 1: Search */}
-        {step === "search" && (
+        {step === "search" && rsvpIsOpen && (
           <motion.div
             key="search"
             initial={{ opacity: 0, y: 20 }}
